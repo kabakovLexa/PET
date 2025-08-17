@@ -2,9 +2,9 @@
 
 ## 🚀 Архитектура проекта
 
-Этот проект представляет собой современную микросервисную архитектуру на Java с полным DevOps стеком, включающим CI/CD pipeline, event-driven коммуникацию и production-ready мониторинг.
+Этот проект представляет собой современную микросервисную архитектуру на Java с полным DevOps стеком, включающим Kubernetes orchestration, CI/CD pipeline, event-driven коммуникацию и production-ready мониторинг.
 
-### 📋 Микросервисы (ФАЗА 4 - CI/CD)
+### 📋 Микросервисы (ФАЗА 5 - Kubernetes)
 
 1. **discovery-service** - Eureka Server для Service Discovery
 2. **api-gateway** - Шлюз для маршрутизации запросов
@@ -32,243 +32,303 @@
 - **Custom metrics** - бизнес метрики приложений
 
 #### ФАЗА 4 - CI/CD Pipeline:
-- ✅ **Jenkins** - автоматизация сборки и деплоя
-- ✅ **Automated Testing** - unit, integration, smoke tests
-- ✅ **Docker Registry** - хранение Docker images
-- ✅ **Multi-environment deployment** (test, staging, production)
-- ✅ **Pipeline as Code** - Jenkinsfile с полным CI/CD
-- ✅ **Quality Gates** - код качество и security scanning
+- **Jenkins** - автоматизация сборки и деплоя
+- **Automated Testing** - unit, integration, smoke tests
+- **Docker Registry** - хранение Docker images
+- **Multi-environment deployment** (test, staging, production)
 
-### 🌐 Архитектурная диаграма
+#### ФАЗА 5 - Kubernetes Orchestration:
+- ✅ **Kubernetes Cluster** - container orchestration с Kind
+- ✅ **Kubernetes Dashboard** - веб-интерфейс для управления кластером
+- ✅ **Helm Charts** - пакетный менеджер для Kubernetes
+- ✅ **ArgoCD** - GitOps continuous delivery
+- ✅ **Service Mesh Ready** - подготовка к Istio
+- ✅ **Horizontal Pod Autoscaler** - автоматическое масштабирование
+- ✅ **Ingress Controller** - управление внешним трафиком
+- ✅ **Persistent Volumes** - хранилище для stateful сервисов
+
+### 🌐 Архитектурная диаграмма
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        CI/CD Pipeline                           │
-│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────────┐ │
-│  │ Source  │→│ Build   │→│ Test    │→│ Deploy  │→│ Monitor     │ │
-│  │ Code    │ │ & QA    │ │ Suite   │ │ Stage   │ │ & Alert     │ │
-│  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └─────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-                                   ↓
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   User Service  │◄──►│ Product Service │    │    Jenkins      │
-│   (port 8081)   │    │   (port 8082)   │    │   (port 8085)   │
-└─────────┬───────┘    └─────────┬───────┘    └─────────────────┘
-          │                      │
-          ▼                      ▼
-┌─────────────────────────────────────────┐
-│            Apache Kafka                 │
-│    Topics: user-events, product-events  │
-└─────────────────────────────────────────┘
-          ▲
-          │
-┌─────────┴───────┐    ┌─────────────────┐    ┌─────────────────┐
-│   API Gateway   │    │ Discovery Service│    │   Monitoring    │
-│   (port 8080)   │    │   (port 8761)   │    │ Prometheus/     │
-└─────────────────┘    └─────────────────┘    │ Grafana/ELK     │
-          ▲                                   └─────────────────┘
-          │
-┌─────────┴───────┐
-│   PostgreSQL    │
-│   (port 5432)   │
-└─────────────────┘
+                    ┌─────────────────────────────────────┐
+                    │           Kubernetes Cluster        │
+                    │                                     │
+┌─────────────────┐ │  ┌─────────────┐ ┌─────────────────┐ │ ┌─────────────────┐
+│   ArgoCD        │◄┼──┤ Helm Charts ├─┤ K8s Dashboard  │ │ │    Jenkins      │
+│   GitOps        │ │  └─────────────┘ └─────────────────┘ │ │    CI/CD        │
+└─────────────────┘ │                                     │ └─────────────────┘
+                    │  ┌─────────────┐ ┌─────────────────┐ │
+                    │  │   Ingress   │ │   Service Mesh  │ │
+                    │  │ Controller  │ │   (Istio Ready) │ │
+                    │  └─────────────┘ └─────────────────┘ │
+                    │                                     │
+                    │  ┌─────────────┐ ┌─────────────────┐ │
+                    │  │ User Service│ │Product Service  │ │
+                    │  │ (2 replicas)│ │  (2 replicas)   │ │
+                    │  └─────────────┘ └─────────────────┘ │
+                    │         │                │          │
+                    │         ▼                ▼          │
+                    │  ┌─────────────────────────────────┐ │
+                    │  │        Apache Kafka             │ │
+                    │  │   (StatefulSet + PV)           │ │
+                    │  └─────────────────────────────────┘ │
+                    │         ▲                           │
+                    │         │                           │
+                    │  ┌─────────────┐ ┌─────────────────┐ │
+                    │  │API Gateway  │ │Discovery Service│ │
+                    │  │(3 replicas) │ │  (2 replicas)   │ │
+                    │  └─────────────┘ └─────────────────┘ │
+                    │         ▲                           │
+                    │         │                           │
+                    │  ┌─────────────────────────────────┐ │
+                    │  │       PostgreSQL                │ │
+                    │  │   (StatefulSet + PV)           │ │
+                    │  └─────────────────────────────────┘ │
+                    └─────────────────────────────────────┘
 ```
 
 ### 🚦 Быстрый старт
 
-1. **Сборка полного стека:**
+#### Docker Compose (развертывание для разработки):
 ```bash
 ./build.sh
-```
-
-2. **Запуск всех сервисов:**
-```bash
 ./start.sh
-```
-
-3. **Настройка Jenkins:**
-```bash
-./scripts/setup-jenkins.sh
-```
-
-4. **Тестирование API:**
-```bash
 ./test-apis.sh
 ```
 
-5. **Остановка сервисов:**
+#### Kubernetes (production-ready развертывание):
 ```bash
-./stop.sh
+# 1. Настройка Kubernetes кластера
+./scripts/setup-kubernetes.sh
+
+# 2. Развертывание микросервисов  
+./scripts/deploy-to-kubernetes.sh
+
+# 3. Тестирование развертывания
+./scripts/test-kubernetes.sh
+
+# 4. Использование Helm
+helm install microservices ./helm/microservices -n microservices --create-namespace
+
+# 5. Обновление через Helm
+helm upgrade microservices ./helm/microservices -n microservices
 ```
 
 ### 📊 Доступные сервисы
 
-#### Основные сервисы:
+#### Docker Compose mode:
 - **Eureka Dashboard**: http://localhost:8761
 - **API Gateway**: http://localhost:8080  
-- **User Service**: http://localhost:8081
-- **Product Service**: http://localhost:8082
-
-#### CI/CD и DevOps:
 - **Jenkins**: http://localhost:8085 (admin/admin123)
 - **Grafana**: http://localhost:3000 (admin/admin123)
 - **Prometheus**: http://localhost:9090
 - **Kibana**: http://localhost:5601
 - **Kafka UI**: http://localhost:8090
-- **PostgreSQL**: localhost:5432
 
-### 🔄 CI/CD Pipeline Features
+#### Kubernetes mode:
+- **API Gateway**: http://localhost:8080 (port-forward)
+- **Kubernetes Dashboard**: http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+- **ArgoCD**: http://localhost:8080 (port-forward)
+- **Grafana**: http://localhost:3000 (port-forward)
+- **Prometheus**: http://localhost:9090 (port-forward)
 
-#### Автоматизация сборки:
-- **Parallel builds** - одновременная сборка всех сервисов
-- **Automated testing** - unit tests, integration tests
-- **Code quality analysis** - SonarQube integration ready
-- **Security scanning** - OWASP dependency check
-- **Docker image building** - automated containerization
+### ☸️ Kubernetes Features
 
-#### Deployment Strategy:
-- **Multi-environment support** - test, staging, production
-- **Rolling deployments** - zero-downtime updates
-- **Blue-green deployment** - для production
-- **Automated rollback** - при failure detection
-- **Smoke tests** - автоматическая проверка после деплоя
+#### Orchestration:
+- **Kind Cluster** - локальный Kubernetes кластер для разработки
+- **Multi-node Setup** - 1 control-plane + 2 worker nodes
+- **Ingress Controller** - NGINX для управления внешним трафиком
+- **Service Discovery** - Kubernetes native + Eureka hybrid
+- **Load Balancing** - автоматическое между репликами
 
-#### Pipeline Stages:
-1. **📋 Checkout** - получение исходного кода
-2. **🔍 Pre-build Checks** - code style, security, dependencies
-3. **🏗️ Build & Test** - параллельная сборка и тестирование
-4. **📊 Quality Analysis** - code quality и security анализ
-5. **🐳 Docker Images** - сборка и тегирование образов
-6. **🧪 Integration Tests** - полное E2E тестирование
-7. **📦 Registry Push** - публикация образов в registry
-8. **🚀 Deploy Staging** - автоматический деплой в staging
-9. **🎯 Deploy Production** - manual approval + production деплой
+#### Storage:
+- **Persistent Volumes** - для PostgreSQL и Kafka данных
+- **StatefulSets** - для stateful сервисов (DB, Kafka)
+- **Dynamic Provisioning** - автоматическое создание PV
 
-### 📡 Event-driven коммуникация
+#### Scaling:
+- **Horizontal Pod Autoscaler** - автомасштабирование по CPU/Memory
+- **Manual Scaling** - `kubectl scale deployment/user-service --replicas=5`
+- **Resource Limits** - CPU/Memory limits для всех pods
 
-#### Kafka Topics:
-1. **user-events** - события пользователей
-   - USER_CREATED, USER_UPDATED, USER_DELETED
+#### Monitoring:
+- **Prometheus Operator** - автоматический monitoring stack
+- **Grafana Dashboards** - предустановленные дашборды
+- **Health Probes** - liveness и readiness проверки
+- **Metrics Scraping** - автоматический сбор метрик
 
-2. **product-events** - события продуктов
-   - PRODUCT_CREATED, PRODUCT_UPDATED, PRODUCT_DELETED
+#### Security:
+- **RBAC** - Role-Based Access Control
+- **Service Accounts** - dedicated для каждого сервиса
+- **Network Policies** - изоляция трафика между namespace
+- **Secrets Management** - encrypted secrets для паролей
 
-#### Межсервисное общение:
-- User Service → публикует события → Product Service получает
-- Product Service → публикует события → User Service получает
-- Все события трассируются через мониторинг
+### 🎯 Helm Charts
+
+#### Основной чарт `./helm/microservices/`:
+```bash
+# Установка в development
+helm install dev-microservices ./helm/microservices \
+  --namespace microservices \
+  --create-namespace
+
+# Установка в staging
+helm install staging-microservices ./helm/microservices \
+  --namespace microservices-staging \
+  --create-namespace \
+  --values helm/microservices/values-staging.yaml
+
+# Обновление
+helm upgrade microservices ./helm/microservices
+```
+
+#### Features:
+- **Dependency Management** - автоматическая установка PostgreSQL, Kafka
+- **Environment-specific Values** - разные конфигурации для разных сред
+- **ConfigMap/Secret Management** - централизованная конфигурация
+- **Service Templates** - переиспользуемые шаблоны
+- **Ingress Configuration** - автоматическая настройка внешнего доступа
+
+### 🔄 GitOps с ArgoCD
+
+#### ArgoCD Applications:
+```yaml
+# Development
+argocd-application: microservices-app
+target: HEAD branch
+namespace: microservices
+
+# Staging  
+argocd-application: microservices-staging
+target: develop branch
+namespace: microservices-staging
+
+# Production
+argocd-application: microservices-production
+target: main branch
+namespace: microservices-prod (manual sync)
+```
+
+#### GitOps Workflow:
+1. **Code Push** → Git Repository
+2. **ArgoCD** → автоматический sync изменений
+3. **Helm** → deployment в Kubernetes
+4. **Monitoring** → проверка health через Prometheus/Grafana
 
 ### 📚 API Endpoints
 
-#### User Service (через Gateway: http://localhost:8080/users)
-- `GET /users` - Получить всех пользователей
-- `POST /users` - Создать пользователя (+ Kafka событие + метрики)
-- `PUT /users/{id}` - Обновить пользователя
-- `DELETE /users/{id}` - Удалить пользователя
-- `GET /users/{id}` - Получить пользователя по ID
-- `GET /users/department/{dept}` - Пользователи по отделу
+#### Kubernetes Service Discovery:
+- Сервисы доступны по DNS именам: `http://user-service:8081`
+- Внешний доступ через API Gateway: `http://api-gateway:8080`
+- Load balancing автоматически между репликами
 
-#### Product Service (через Gateway: http://localhost:8080/products)
-- `GET /products` - Получить все продукты
-- `POST /products` - Создать продукт (+ Kafka событие + метрики)
-- `PUT /products/{id}` - Обновить продукт
-- `DELETE /products/{id}` - Удалить продукт
-- `GET /products/{id}` - Получить продукт по ID
-- `GET /products/category/{category}` - Продукты по категории
-- `PATCH /products/{id}/activate` - Активировать продукт
-- `PATCH /products/{id}/deactivate` - Деактивировать продукт
-
-### 🧪 Тестирование
-
-#### Automated Test Suite:
+#### Health Checks:
 ```bash
-# Запуск всех тестов
-./test-apis.sh
+# Kubernetes health probes
+curl http://user-service:8081/actuator/health/liveness
+curl http://user-service:8081/actuator/health/readiness
 
-# CI/CD интеграционные тесты
-./scripts/ci-cd-test.sh
-
-# Деплой в staging с тестами
-./scripts/deploy-staging.sh
+# Через API Gateway
+curl http://localhost:8080/users/health
+curl http://localhost:8080/products/health
 ```
 
-#### Test Environments:
-- **Test**: docker-compose.test.yml - изолированное тестирование
-- **Staging**: docker-compose.staging.yml - pre-production тесты
-- **Production**: docker-compose.prod.yml - production deployment
+### 🧪 Testing в Kubernetes
 
-### 📈 Мониторинг и метрики
+#### Automated Tests:
+```bash
+# Полное тестирование Kubernetes deployment
+./scripts/test-kubernetes.sh
 
-#### Custom Application Metrics:
-- `users_created_total, users_updated_total, users_deleted_total`
-- `products_created_total, products_updated_total, products_deleted_total`  
-- `user_creation_duration, product_creation_duration`
-- `http_server_requests_seconds` - latency метрики
-- `kafka_producer_*` и `kafka_consumer_*` метрики
+# Тестирование scaling
+kubectl scale deployment/user-service --replicas=5 -n microservices
+kubectl get pods -n microservices -w
 
-#### Dashboards:
-- **Grafana Microservices Overview** - статус сервисов, latency, throughput
-- **Jenkins Pipeline Dashboard** - build статус, deployment metrics
-- **Kafka Dashboard** - message throughput, consumer lag
-- **Infrastructure Dashboard** - CPU, memory, disk usage
-
-### 🗄️ База данных
-
-**PostgreSQL databases:**
-- `user_db` - данные пользователей
-- `product_db` - данные продуктов
-
-**Multi-environment support:**
-- Development: H2 in-memory
-- Test: PostgreSQL test instance
-- Staging: PostgreSQL staging
-- Production: PostgreSQL с backups
-
-### 🔐 Security & Quality
-
-#### Code Quality:
-- **Maven Checkstyle** - code style enforcement
-- **SpotBugs** - static analysis
-- **JaCoCo** - code coverage reporting
-- **OWASP Dependency Check** - vulnerability scanning
-
-#### Security:
-- **Docker security scanning** - image vulnerability check
-- **Secrets management** - environment-based configuration
-- **Network isolation** - Docker networks
-- **Access control** - Jenkins role-based security
-
-### 🏗️ Development Workflow
-
-#### Git Flow:
-```
-main branch    → production deployments
-develop branch → staging deployments  
-feature/*      → feature development
-release/*      → release preparation
-hotfix/*       → production hotfixes
+# Rolling update testing
+kubectl set image deployment/user-service user-service=user-service:v2 -n microservices
+kubectl rollout status deployment/user-service -n microservices
 ```
 
-#### Pipeline Triggers:
-- **Push to develop** → automatic staging deployment
-- **Push to main** → production deployment (with approval)
-- **Pull Requests** → automated testing and quality checks
-- **Manual triggers** → on-demand builds and deployments
+#### Load Testing:
+```bash
+# Создание нагрузки для тестирования HPA
+kubectl run -i --tty load-generator --rm --image=busybox --restart=Never -- /bin/sh
+while true; do wget -q -O- http://api-gateway:8080/users; done
+```
 
-### 🚀 Следующие фазы развития
+### 📈 Мониторинг в Kubernetes
 
-- **Фаза 5:** Kubernetes + Dashboard (container orchestration)
+#### Prometheus Stack:
+- **Prometheus Operator** - automated monitoring setup
+- **ServiceMonitor** - автоматическое обнаружение сервисов
+- **AlertManager** - уведомления о проблемах
+- **Node Exporter** - мониторинг узлов кластера
+
+#### Grafana Dashboards:
+- **Kubernetes Cluster Overview** - статус узлов, pods, deployments
+- **Microservices Dashboard** - business метрики приложений
+- **JVM Dashboard** - Java application metrics
+- **Kafka Dashboard** - messaging metrics
+
+### 🔧 Operations
+
+#### Debugging:
+```bash
+# Логи сервиса
+kubectl logs -f deployment/user-service -n microservices
+
+# Описание проблемы
+kubectl describe pod <pod-name> -n microservices
+
+# Выполнение команд в контейнере
+kubectl exec -it <pod-name> -n microservices -- /bin/bash
+
+# Port forwarding для локального доступа
+kubectl port-forward svc/api-gateway 8080:8080 -n microservices
+```
+
+#### Scaling Operations:
+```bash
+# Manual scaling
+kubectl scale deployment/user-service --replicas=3 -n microservices
+
+# Autoscaling
+kubectl autoscale deployment user-service --cpu-percent=50 --min=2 --max=10 -n microservices
+
+# Check HPA status
+kubectl get hpa -n microservices
+```
+
+#### Updates:
+```bash
+# Rolling update
+kubectl set image deployment/user-service user-service=user-service:v2 -n microservices
+
+# Rollback
+kubectl rollout undo deployment/user-service -n microservices
+
+# History
+kubectl rollout history deployment/user-service -n microservices
+```
+
+### 🏗️ Следующие фазы развития
+
 - **Фаза 6:** Jira, TestIT, Confluent (external integrations)
-- **Фаза 7:** Production deployment (VPS/DNS setup)
+- **Фаза 7:** Production deployment (VPS/DNS setup + Service Mesh)
 
 ### 🎯 Production Ready Features
 
-✅ **High Availability** - service redundancy и load balancing  
-✅ **Monitoring & Alerting** - comprehensive observability  
-✅ **Automated Recovery** - health checks и auto-restart  
-✅ **Security** - vulnerability scanning и secrets management  
-✅ **Scalability** - horizontal scaling ready  
-✅ **Backup & Recovery** - database backups и rollback procedures  
-✅ **Documentation** - comprehensive API и deployment docs  
+✅ **Container Orchestration** - Kubernetes для автоматического управления  
+✅ **High Availability** - несколько реплик каждого сервиса  
+✅ **Auto-scaling** - HPA для динамического масштабирования  
+✅ **Service Discovery** - Kubernetes native + hybrid Eureka  
+✅ **Load Balancing** - автоматическое между репликами  
+✅ **Rolling Updates** - zero-downtime deployments  
+✅ **Health Monitoring** - liveness/readiness probes  
+✅ **Resource Management** - CPU/Memory limits и requests  
+✅ **Persistent Storage** - для stateful сервисов  
+✅ **GitOps Workflow** - ArgoCD для automated deployments  
+✅ **Observability** - полный monitoring stack в Kubernetes  
+✅ **Security** - RBAC, service accounts, network policies  
 
-**ФАЗА 4 завершена! Полный CI/CD pipeline с Jenkins готов для production использования! 🎉🔄**
+**ФАЗА 5 завершена! Enterprise-grade Kubernetes orchestration готова для production использования! ☸️🚀**

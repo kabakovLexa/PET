@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Начинается сборка Java микросервисов (ФАЗА 4 - CI/CD)..."
+echo "🚀 Начинается сборка Java микросервисов (ФАЗА 5 - Kubernetes)..."
 
 # Проверяем наличие Maven
 if ! command -v mvn &> /dev/null; then
@@ -27,6 +27,10 @@ mkdir -p monitoring/grafana/provisioning/dashboards
 mkdir -p monitoring/grafana/dashboards
 mkdir -p monitoring/logstash
 mkdir -p jenkins/jobs
+mkdir -p kubernetes/dashboard
+mkdir -p kubernetes/argocd
+mkdir -p kubernetes/monitoring
+mkdir -p helm/microservices/templates
 mkdir -p logs
 mkdir -p scripts
 
@@ -53,23 +57,27 @@ docker-compose build
 if [ $? -eq 0 ]; then
     echo "✅ Docker образы успешно собраны!"
     echo ""
-    echo "🎉 Сборка ФАЗЫ 4 завершена!"
+    echo "🎉 Сборка ФАЗЫ 5 завершена!"
     echo ""
-    echo "🔄 Полный CI/CD стек готов:"
-    echo "   • Jenkins для автоматизации"
-    echo "   • Prometheus + Grafana для метрик"
-    echo "   • ELK Stack для логирования"
-    echo "   • Kafka + PostgreSQL + микросервисы"
-    echo "   • Автоматические тесты и деплой"
+    echo "☸️ Полный Kubernetes стек готов:"
+    echo "   • Kubernetes cluster с Kind"
+    echo "   • Helm charts для deployment"
+    echo "   • ArgoCD для GitOps"
+    echo "   • Kubernetes Dashboard"
+    echo "   • Horizontal Pod Autoscaler"
+    echo "   • Jenkins для CI/CD"
+    echo "   • Prometheus + Grafana в K8s"
+    echo "   • Service Mesh готовность"
     echo ""
-    echo "🚀 Запустите полный стек командой:"
-    echo "   ./start.sh"
+    echo "🚀 Варианты запуска:"
+    echo "   Docker Compose: ./start.sh"
+    echo "   Kubernetes:     ./scripts/setup-kubernetes.sh"
     echo ""
-    echo "🔧 Настройте Jenkins:"
-    echo "   ./scripts/setup-jenkins.sh"
+    echo "☸️ Kubernetes deployment:"
+    echo "   ./scripts/deploy-to-kubernetes.sh"
     echo ""
-    echo "Или запустить через Docker Compose:"
-    echo "   docker-compose up -d"
+    echo "📊 Helm deployment:"
+    echo "   helm install microservices ./helm/microservices -n microservices --create-namespace"
 else
     echo "❌ Ошибка при сборке Docker образов"
     exit 1
