@@ -1,8 +1,10 @@
 package com.testproject.product.service;
 
 import com.testproject.product.kafka.ProductEventPublisher;
+import com.testproject.product.metrics.ProductMetrics;
 import com.testproject.product.model.Product;
 import com.testproject.product.repository.ProductRepository;
+import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
