@@ -1,0 +1,24 @@
+{{- range $service := list "discoveryService" "apiGateway" "userService" "productService" }}
+{{- $serviceConfig := index $.Values.microservices $service }}
+{{- if $serviceConfig.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $serviceConfig.name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "microservices.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $serviceConfig.name }}
+spec:
+  type: {{ $serviceConfig.service.type }}
+  ports:
+    - port: {{ $serviceConfig.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "microservices.selectorLabels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $serviceConfig.name }}
+{{- end }}
+{{- end }}

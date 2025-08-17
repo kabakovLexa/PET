@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "microservices.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "microservices.labels" . | nindent 4 }}
+data:
+  # Application configuration
+  application.yaml: |
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,info,prometheus,metrics
+      endpoint:
+        health:
+          show-details: always
+        prometheus:
+          enabled: true
+      metrics:
+        export:
+          prometheus:
+            enabled: true
+        tags:
+          environment: kubernetes
+    
+    logging:
+      level:
+        org.springframework.cloud.kubernetes: DEBUG
+        org.springframework.kafka: WARN
+      pattern:
+        console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"
