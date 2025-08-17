@@ -24,6 +24,9 @@ public class UserService {
     @Autowired
     private UserEventPublisher userEventPublisher;
     
+    @Autowired
+    private UserMetrics userMetrics;
+    
     public List<User> getAllUsers() {
         logger.debug("Fetching all users");
         return userRepository.findAll();
