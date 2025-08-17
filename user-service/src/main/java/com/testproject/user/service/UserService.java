@@ -102,6 +102,9 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
         
+        // Record metrics
+        userMetrics.incrementUserDeleted();
+        
         // Publish Kafka event before deletion
         userEventPublisher.publishUserDeleted(
             user.getId(), 
