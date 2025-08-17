@@ -1,5 +1,10 @@
+com/testproject/product/config/KafkaConfig.class
+com/testproject/product/kafka/UserEventConsumer.class
 com/testproject/product/model/Product.class
 com/testproject/product/controller/ProductController.class
 com/testproject/product/service/ProductService.class
 com/testproject/product/repository/ProductRepository.class
+com/testproject/product/event/ProductEvent.class
 com/testproject/product/ProductServiceApplication.class
+com/testproject/product/kafka/ProductEventPublisher.class
+com/testproject/product/config/KafkaConsumerConfig.class

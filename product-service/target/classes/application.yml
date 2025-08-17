@@ -23,6 +23,11 @@ spring:
   sql:
     init:
       mode: always
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
 eureka:
   client:
@@ -48,6 +53,25 @@ spring:
   config:
     activate:
       on-profile: docker
+  datasource:
+    url: jdbc:postgresql://postgres:5432/product_db
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres123
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+  kafka:
+    bootstrap-servers: kafka:9092
 
 eureka:
   client:
