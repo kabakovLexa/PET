@@ -25,6 +25,9 @@ public class ProductService {
     @Autowired
     private ProductEventPublisher productEventPublisher;
     
+    @Autowired
+    private ProductMetrics productMetrics;
+    
     public List<Product> getAllProducts() {
         logger.debug("Fetching all products");
         return productRepository.findAll();
