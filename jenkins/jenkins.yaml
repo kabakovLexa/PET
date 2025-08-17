@@ -1,0 +1,247 @@
+jenkins:
+  systemMessage: "Java Microservices CI/CD Pipeline"
+  numExecutors: 2
+  mode: NORMAL
+  scmCheckoutRetryCount: 3
+  
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+       - id: "admin"
+         password: "admin123"
+         
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+  globalNodeProperties:
+  - envVars:
+      env:
+      - key: "JAVA_HOME"
+        value: "/opt/java/openjdk"
+      - key: "MAVEN_HOME" 
+        value: "/usr/share/maven"
+      - key: "DOCKER_HOST"
+        value: "unix:///var/run/docker.sock"
+
+tool:
+  git:
+    installations:
+    - name: "git"
+      home: "/usr/bin/git"
+  maven:
+    installations:
+    - name: "maven-3.8.7"
+      home: "/usr/share/maven"
+  jdk:
+    installations:
+    - name: "openjdk-17"
+      home: "/opt/java/openjdk"
+
+jobs:
+  - script: |
+      multibranchPipelineJob('microservices-pipeline') {
+        displayName('Microservices CI/CD Pipeline')
+        description('Automated CI/CD pipeline for Java microservices')
+        branchSources {
+          git {
+            id('microservices-repo')
+            remote('https://github.com/your-org/microservices-project.git')
+            credentialsId('')
+          }
+        }
+        configure { node ->
+          def traits = node / 'sources' / 'data' / 'jenkins.branch.BranchSource' / 'source' / 'traits'
+          traits << 'jenkins.plugins.git.traits.BranchDiscoveryTrait' {
+          }
+        }
+      }
+      
+  - script: |
+      pipelineJob('microservices-build') {
+        displayName('Build All Microservices')
+        description('Build and test all microservices')
+        definition {
+          cps {
+            script('''
+              pipeline {
+                agent any
+                
+                tools {
+                  maven 'maven-3.8.7'
+                  jdk 'openjdk-17'
+                }
+                
+                environment {
+                  DOCKER_REGISTRY = 'localhost:5000'
+                  BUILD_VERSION = "${BUILD_NUMBER}"
+                }
+                
+                stages {
+                  stage('Checkout') {
+                    steps {
+                      checkout scm
+                    }
+                  }
+                  
+                  stage('Build & Test') {
+                    parallel {
+                      stage('Discovery Service') {
+                        steps {
+                          dir('discovery-service') {
+                            sh 'mvn clean package -DskipTests'
+                            sh 'mvn test'
+                          }
+                        }
+                        post {
+                          always {
+                            publishTestResults testResultsPattern: 'discovery-service/target/surefire-reports/*.xml'
+                          }
+                        }
+                      }
+                      
+                      stage('API Gateway') {
+                        steps {
+                          dir('api-gateway') {
+                            sh 'mvn clean package -DskipTests'
+                            sh 'mvn test'
+                          }
+                        }
+                        post {
+                          always {
+                            publishTestResults testResultsPattern: 'api-gateway/target/surefire-reports/*.xml'
+                          }
+                        }
+                      }
+                      
+                      stage('User Service') {
+                        steps {
+                          dir('user-service') {
+                            sh 'mvn clean package -DskipTests'
+                            sh 'mvn test'
+                          }
+                        }
+                        post {
+                          always {
+                            publishTestResults testResultsPattern: 'user-service/target/surefire-reports/*.xml'
+                          }
+                        }
+                      }
+                      
+                      stage('Product Service') {
+                        steps {
+                          dir('product-service') {
+                            sh 'mvn clean package -DskipTests'
+                            sh 'mvn test'
+                          }
+                        }
+                        post {
+                          always {
+                            publishTestResults testResultsPattern: 'product-service/target/surefire-reports/*.xml'
+                          }
+                        }
+                      }
+                    }
+                  }
+                  
+                  stage('Code Quality') {
+                    parallel {
+                      stage('SonarQube Analysis') {
+                        steps {
+                          script {
+                            echo 'Running code quality analysis...'
+                            // sonarqube analysis would go here
+                          }
+                        }
+                      }
+                      
+                      stage('Security Scan') {
+                        steps {
+                          script {
+                            echo 'Running security scan...'
+                            // security scanning would go here
+                          }
+                        }
+                      }
+                    }
+                  }
+                  
+                  stage('Build Docker Images') {
+                    steps {
+                      script {
+                        def services = ['discovery-service', 'api-gateway', 'user-service', 'product-service']
+                        services.each { service ->
+                          dir(service) {
+                            sh "docker build -t ${service}:${BUILD_VERSION} ."
+                            sh "docker tag ${service}:${BUILD_VERSION} ${service}:latest"
+                          }
+                        }
+                      }
+                    }
+                  }
+                  
+                  stage('Integration Tests') {
+                    steps {
+                      script {
+                        echo 'Running integration tests...'
+                        sh 'docker-compose -f docker-compose.test.yml up -d'
+                        sh 'sleep 60' // Wait for services to start
+                        sh './test-apis.sh'
+                      }
+                    }
+                    post {
+                      always {
+                        sh 'docker-compose -f docker-compose.test.yml down'
+                      }
+                    }
+                  }
+                  
+                  stage('Deploy to Staging') {
+                    when {
+                      branch 'develop'
+                    }
+                    steps {
+                      script {
+                        echo 'Deploying to staging environment...'
+                        sh 'docker-compose -f docker-compose.staging.yml up -d'
+                      }
+                    }
+                  }
+                  
+                  stage('Deploy to Production') {
+                    when {
+                      branch 'main'
+                    }
+                    steps {
+                      script {
+                        echo 'Deploying to production environment...'
+                        // production deployment steps
+                      }
+                    }
+                  }
+                }
+                
+                post {
+                  always {
+                    cleanWs()
+                  }
+                  success {
+                    slackSend(
+                      color: 'good',
+                      message: "✅ Build Success: ${env.JOB_NAME} - ${env.BUILD_NUMBER}"
+                    )
+                  }
+                  failure {
+                    slackSend(
+                      color: 'danger', 
+                      message: "❌ Build Failed: ${env.JOB_NAME} - ${env.BUILD_NUMBER}"
+                    )
+                  }
+                }
+              }
+            ''')
+            sandbox()
+          }
+        }
+      }
