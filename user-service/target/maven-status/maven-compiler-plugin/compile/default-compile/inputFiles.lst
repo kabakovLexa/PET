@@ -1,0 +1,11 @@
+/app/user-service/src/main/java/com/testproject/user/kafka/ProductEventConsumer.java
+/app/user-service/src/main/java/com/testproject/user/kafka/UserEventPublisher.java
+/app/user-service/src/main/java/com/testproject/user/controller/UserController.java
+/app/user-service/src/main/java/com/testproject/user/event/UserEvent.java
+/app/user-service/src/main/java/com/testproject/user/UserServiceApplication.java
+/app/user-service/src/main/java/com/testproject/user/repository/UserRepository.java
+/app/user-service/src/main/java/com/testproject/user/metrics/UserMetrics.java
+/app/user-service/src/main/java/com/testproject/user/config/KafkaConsumerConfig.java
+/app/user-service/src/main/java/com/testproject/user/config/KafkaConfig.java
+/app/user-service/src/main/java/com/testproject/user/model/User.java
+/app/user-service/src/main/java/com/testproject/user/service/UserService.java
