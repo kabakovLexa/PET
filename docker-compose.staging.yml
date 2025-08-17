@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # Staging Database
+  postgres-staging:
+    image: postgres:15
+    container_name: postgres-staging
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: microservices_staging_db
+      POSTGRES_USER: staging_user
+      POSTGRES_PASSWORD: staging_password
+    volumes:
+      - postgres_staging_data:/var/lib/postgresql/data
+      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    networks:
+      - staging-network
+
+  # Staging Kafka
+  zookeeper-staging:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper-staging
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - staging-network
+
+  kafka-staging:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka-staging
+    depends_on:
+      - zookeeper-staging
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-staging:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-staging:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - staging-network
+
+  # Staging Services
+  discovery-service-staging:
+    image: discovery-service:latest
+    container_name: discovery-service-staging
+    ports:
+      - "8763:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=staging
+    networks:
+      - staging-network
+
+  api-gateway-staging:
+    image: api-gateway:latest
+    container_name: api-gateway-staging
+    ports:
+      - "8087:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=staging
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service-staging:8761/eureka
+    depends_on:
+      - discovery-service-staging
+    networks:
+      - staging-network
+
+  user-service-staging:
+    image: user-service:latest
+    container_name: user-service-staging
+    environment:
+      - SPRING_PROFILES_ACTIVE=staging
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service-staging:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-staging:5432/user_db
+      - SPRING_DATASOURCE_USERNAME=staging_user
+      - SPRING_DATASOURCE_PASSWORD=staging_password
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-staging:9092
+    depends_on:
+      - discovery-service-staging
+      - postgres-staging
+      - kafka-staging
+    networks:
+      - staging-network
+
+  product-service-staging:
+    image: product-service:latest
+    container_name: product-service-staging
+    environment:
+      - SPRING_PROFILES_ACTIVE=staging
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service-staging:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-staging:5432/product_db
+      - SPRING_DATASOURCE_USERNAME=staging_user
+      - SPRING_DATASOURCE_PASSWORD=staging_password
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-staging:9092
+    depends_on:
+      - discovery-service-staging
+      - postgres-staging
+      - kafka-staging
+    networks:
+      - staging-network
+
+volumes:
+  postgres_staging_data:
+
+networks:
+  staging-network:
+    driver: bridge
