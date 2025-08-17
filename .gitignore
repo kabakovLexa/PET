@@ -1,80 +1,82 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
 
-# IDE and editors
+# IDE
 .idea/
+*.iml
 .vscode/
+*.swp
+*.swo
+*~
 
-# Dependencies
-node_modules/
-/node_modules
-/.pnp
-.pnp.js
-.yarn/install-state.gz
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# Testing
-/coverage
+# Docker
+.env.local
+.env.*.local
 
-# Next.js
-/.next/
-/out/
-next-env.d.ts
-*.tsbuildinfo
-
-# Production builds
-/build
-dist/
-dist
-
-# Environment files (comprehensive coverage)
-
-*token.json*
-*credentials.json*
-
-# Logs and debug files
+# Logs
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
-dump.rdb
 
-# System files
-.DS_Store
-*.pem
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
 
-# Python
-__pycache__/
-*pyc*
-venv/
-.venv/
+# Coverage directory used by tools like istanbul
+coverage/
+.nyc_output
 
-# Development tools
-chainlit.md
-.chainlit
-.ipynb_checkpoints/
-.ac
+# Jenkins
+jenkins/secrets/
+jenkins/logs/
+jenkins/workspace/
 
-# Deployment
-.vercel
+# Backup files
+*.sql.bak
+staging-backup-*.sql
+prod-backup-*.sql
 
-# Data and databases
-agenthub/agents/youtube/db
+# Temporary files
+*.tmp
+*.temp
+docker-compose.*.tmp.yml
 
-# Archive files and large assets
-**/*.zip
-**/*.tar.gz
-**/*.tar
-**/*.tgz
-*.pack
-*.deb
-*.dylib
+# Test results
+test-results.xml
+surefire-reports/
+TEST-*.xml
 
-# Build caches
-.cache/
+# Build artifacts
+dist/
+build/
+out/
 
-# Mobile development
-android-sdk/ 
+# Node modules (if any frontend components)
+node_modules/
+
+# Environment files with secrets
+.env.production
+.env.staging
+.env.secrets
