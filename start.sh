@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Запускаем Java микросервисы..."
+echo "🚀 Запускаем Java микросервисы с полным CI/CD стеком..."
 
 # Проверяем наличие Docker Compose
 if ! command -v docker-compose &> /dev/null && ! command -v docker compose &> /dev/null; then
@@ -24,9 +24,10 @@ fi
 if [ $? -eq 0 ]; then
     echo "✅ Все сервисы успешно запущены!"
     echo ""
-    echo "📊 Статус сервисов:"
-    sleep 5
+    echo "⏳ Ожидание готовности сервисов (30 секунд)..."
+    sleep 30
     
+    echo "📊 Статус сервисов:"
     if command -v docker-compose &> /dev/null; then
         docker-compose ps
     else
@@ -40,11 +41,24 @@ if [ $? -eq 0 ]; then
     echo "   • User Service: http://localhost:8081"
     echo "   • Product Service: http://localhost:8082"
     echo ""
+    echo "🔄 CI/CD и Мониторинг:"
+    echo "   • Jenkins CI/CD: http://localhost:8085 (admin/admin123)"
+    echo "   • Grafana Dashboard: http://localhost:3000 (admin/admin123)"
+    echo "   • Prometheus: http://localhost:9090"
+    echo "   • Kibana Logs: http://localhost:5601"
+    echo "   • Kafka UI: http://localhost:8090"
+    echo ""
     echo "📚 Примеры API запросов:"
     echo "   • GET http://localhost:8080/users - Получить всех пользователей"
     echo "   • GET http://localhost:8080/products - Получить все продукты"
     echo "   • GET http://localhost:8080/users/health - Проверить статус User Service"
     echo "   • GET http://localhost:8080/products/health - Проверить статус Product Service"
+    echo ""
+    echo "🧪 Запустить интеграционные тесты:"
+    echo "   ./test-apis.sh"
+    echo ""
+    echo "🔧 Настроить Jenkins:"
+    echo "   ./scripts/setup-jenkins.sh"
     echo ""
     echo "Для остановки сервисов используйте: ./stop.sh"
 else
