@@ -1,0 +1,78 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: microservices-app
+  namespace: argocd
+  labels:
+    name: microservices
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/your-org/microservices-project.git
+    targetRevision: HEAD
+    path: helm/microservices
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: microservices
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: microservices-staging
+  namespace: argocd
+  labels:
+    name: microservices-staging
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/your-org/microservices-project.git
+    targetRevision: develop
+    path: helm/microservices
+    helm:
+      valueFiles:
+        - values-staging.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: microservices-staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: microservices-production
+  namespace: argocd
+  labels:
+    name: microservices-production
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/your-org/microservices-project.git
+    targetRevision: main
+    path: helm/microservices
+    helm:
+      valueFiles:
+        - values-production.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: microservices-prod
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    # Production deployments require manual sync
+    # automated:
+    #   prune: false
+    #   selfHeal: false
