@@ -1,5 +1,0 @@
-com/testproject/user/controller/UserController.class
-com/testproject/user/kafka/UserEventPublisher.class
-com/testproject/user/service/UserService.class
-com/testproject/user/repository/UserRepository.class
-com/testproject/user/model/User.class
