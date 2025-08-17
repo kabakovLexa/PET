@@ -45,12 +45,18 @@ public class UserService {
     public User createUser(User user) {
         logger.info("Creating new user: {}", user.getEmail());
         
+        Timer.Sample sample = userMetrics.startUserCreationTimer();
+        
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("User with email " + user.getEmail() + " already exists");
         }
         
         User savedUser = userRepository.save(user);
         logger.info("User created successfully: {}", savedUser);
+        
+        // Record metrics
+        userMetrics.incrementUserCreated();
+        userMetrics.recordUserCreationTime(sample);
         
         // Publish Kafka event
         userEventPublisher.publishUserCreated(
