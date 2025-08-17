@@ -1,8 +1,10 @@
 package com.testproject.user.service;
 
 import com.testproject.user.kafka.UserEventPublisher;
+import com.testproject.user.metrics.UserMetrics;
 import com.testproject.user.model.User;
 import com.testproject.user.repository.UserRepository;
+import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
