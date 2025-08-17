@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    
+    <!-- Console appender -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- TCP appender for Logstash -->
+    <springProfile name="docker">
+        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+            <destination>logstash:5000</destination>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <customFields>{"service":"user-service","environment":"docker"}</customFields>
+                <includeContext>true</includeContext>
+                <includeMdc>true</includeMdc>
+            </encoder>
+        </appender>
+    </springProfile>
+    
+    <!-- File appender for local development -->
+    <springProfile name="!docker">
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/user-service.log</file>
