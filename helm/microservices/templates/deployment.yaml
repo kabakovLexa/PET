@@ -1,0 +1,100 @@
+{{- range $service := list "discoveryService" "apiGateway" "userService" "productService" }}
+{{- $serviceConfig := index $.Values.microservices $service }}
+{{- if $serviceConfig.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $serviceConfig.name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "microservices.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $serviceConfig.name }}
+spec:
+  replicas: {{ $serviceConfig.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "microservices.selectorLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: {{ $serviceConfig.name }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") $ | sha256sum }}
+      labels:
+        {{- include "microservices.selectorLabels" $ | nindent 8 }}
+        app.kubernetes.io/component: {{ $serviceConfig.name }}
+        version: v1
+    spec:
+      {{- with $.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "microservices.serviceAccountName" $ }}
+      securityContext:
+        {{- toYaml $.Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ $serviceConfig.name }}
+          securityContext:
+            {{- toYaml $.Values.securityContext | nindent 12 }}
+          image: "{{ $.Values.global.imageRegistry }}{{ $serviceConfig.image.repository }}:{{ $serviceConfig.image.tag | default $.Values.global.imageTag }}"
+          imagePullPolicy: {{ $.Values.global.imagePullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ $serviceConfig.service.port }}
+              protocol: TCP
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "kubernetes"
+            {{- if ne $service "discoveryService" }}
+            - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+              value: "http://{{ $.Values.microservices.discoveryService.name }}:{{ $.Values.microservices.discoveryService.service.port }}/eureka"
+            {{- end }}
+            {{- if or (eq $service "userService") (eq $service "productService") }}
+            - name: SPRING_DATASOURCE_URL
+              {{- if eq $service "userService" }}
+              value: "jdbc:postgresql://{{ include "microservices.postgresql.fullname" $ }}:5432/user_db"
+              {{- else }}
+              value: "jdbc:postgresql://{{ include "microservices.postgresql.fullname" $ }}:5432/product_db"
+              {{- end }}
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "postgres"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "microservices.postgresql.secretName" $ }}
+                  key: postgres-password
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "{{ include "microservices.kafka.fullname" $ }}:9092"
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: {{ if eq $service "discoveryService" }}60{{ else }}90{{ end }}
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: {{ if eq $service "discoveryService" }}30{{ else }}60{{ end }}
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            {{- toYaml $serviceConfig.resources | nindent 12 }}
+      {{- with $.Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+{{- end }}
