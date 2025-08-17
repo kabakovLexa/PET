@@ -82,6 +82,9 @@ public class UserService {
         User updatedUser = userRepository.save(user);
         logger.info("User updated successfully: {}", updatedUser);
         
+        // Record metrics
+        userMetrics.incrementUserUpdated();
+        
         // Publish Kafka event
         userEventPublisher.publishUserUpdated(
             updatedUser.getId(), 
