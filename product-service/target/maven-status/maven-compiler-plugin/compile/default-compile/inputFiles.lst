@@ -1,0 +1,5 @@
+/app/product-service/src/main/java/com/testproject/product/model/Product.java
+/app/product-service/src/main/java/com/testproject/product/service/ProductService.java
+/app/product-service/src/main/java/com/testproject/product/controller/ProductController.java
+/app/product-service/src/main/java/com/testproject/product/ProductServiceApplication.java
+/app/product-service/src/main/java/com/testproject/product/repository/ProductRepository.java

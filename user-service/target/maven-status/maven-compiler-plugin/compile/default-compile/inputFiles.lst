@@ -1,0 +1,5 @@
+/app/user-service/src/main/java/com/testproject/user/controller/UserController.java
+/app/user-service/src/main/java/com/testproject/user/UserServiceApplication.java
+/app/user-service/src/main/java/com/testproject/user/repository/UserRepository.java
+/app/user-service/src/main/java/com/testproject/user/model/User.java
+/app/user-service/src/main/java/com/testproject/user/service/UserService.java
